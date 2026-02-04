@@ -20,6 +20,24 @@ export default function RecordModal({
         note: ''
     });
 
+    const [treeOptions, setTreeOptions] = useState([]);
+
+    // Fetch tree options on mount
+    useEffect(() => {
+        const fetchTrees = async () => {
+            try {
+                const res = await fetch('/api/trees/species');
+                if (res.ok) {
+                    const data = await res.json();
+                    setTreeOptions(data);
+                }
+            } catch (error) {
+                console.error('Error fetching tree options:', error);
+            }
+        };
+        fetchTrees();
+    }, []);
+
     // Update location fields when polygon is clicked
     useEffect(() => {
         if (selectedLocation) {
@@ -126,14 +144,20 @@ export default function RecordModal({
                                 ชื่อต้นไม้ <span className="text-red-500">*</span>
                             </label>
                             <input
+                                list="tree-options"
                                 type="text"
                                 name="treeName"
                                 value={formData.treeName}
                                 onChange={handleChange}
                                 required
-                                placeholder="เช่น ต้นยางนา, ต้นประดู่, ต้นสัก"
+                                placeholder="เลือกหรือพิมพ์ชื่อต้นไม้..."
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                             />
+                            <datalist id="tree-options">
+                                {treeOptions.map(tree => (
+                                    <option key={tree.id} value={tree.name} />
+                                ))}
+                            </datalist>
                         </div>
 
                         <div>

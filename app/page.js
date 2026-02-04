@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import RecordModal from './components/RecordModal';
 import LoginModal from './components/LoginModal';
-import Legend from './components/Legend';
+import Sidebar from './components/Sidebar';
+import SplashScreen from './components/SplashScreen';
 
 // Dynamic import MapComponent to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('./components/MapComponent'), {
@@ -20,6 +21,7 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
 });
 
 export default function Home() {
+  const [showSplash, setShowSplash] = useState(true);
   const [trees, setTrees] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,6 +34,11 @@ export default function Home() {
     tambons: true,
     villages: false
   });
+
+  // Filter states
+  const [selectedTreeTypes, setSelectedTreeTypes] = useState([]);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedTambon, setSelectedTambon] = useState(null);
 
   // Load user session and trees on mount
   useEffect(() => {
@@ -60,6 +67,25 @@ export default function Home() {
       console.error('Error fetching trees:', error);
     }
   };
+
+  // Filtered trees based on filters
+  const filteredTrees = useMemo(() => {
+    return trees.filter(tree => {
+      // Filter by tree type
+      if (selectedTreeTypes.length > 0 && !selectedTreeTypes.includes(tree.tree_name)) {
+        return false;
+      }
+      // Filter by district
+      if (selectedDistrict && tree.district_name !== selectedDistrict) {
+        return false;
+      }
+      // Filter by tambon
+      if (selectedTambon && tree.tambon_name !== selectedTambon) {
+        return false;
+      }
+      return true;
+    });
+  }, [trees, selectedTreeTypes, selectedDistrict, selectedTambon]);
 
   // Handle map click
   const handleMapClick = (latlng) => {
@@ -149,11 +175,54 @@ export default function Home() {
     }));
   };
 
+  // Handle tree type toggle
+  const handleTreeTypeToggle = (treeName) => {
+    if (treeName === null) {
+      // Clear all filters
+      setSelectedTreeTypes([]);
+      return;
+    }
+    setSelectedTreeTypes(prev => {
+      if (prev.includes(treeName)) {
+        return prev.filter(t => t !== treeName);
+      } else {
+        return [...prev, treeName];
+      }
+    });
+  };
+
+  // Handle district change
+  const handleDistrictChange = (district) => {
+    setSelectedDistrict(district);
+    setSelectedTambon(null); // Reset tambon when district changes
+  };
+
+  // Handle tambon change
+  const handleTambonChange = (tambon) => {
+    setSelectedTambon(tambon);
+  };
+
   return (
     <div className="map-container">
+      {/* Splash Screen */}
+      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
+
+      {/* Sidebar */}
+      <Sidebar
+        trees={trees}
+        visibleLayers={visibleLayers}
+        onLayerToggle={handleLayerToggle}
+        selectedTreeTypes={selectedTreeTypes}
+        onTreeTypeToggle={handleTreeTypeToggle}
+        selectedDistrict={selectedDistrict}
+        onDistrictChange={handleDistrictChange}
+        selectedTambon={selectedTambon}
+        onTambonChange={handleTambonChange}
+      />
+
       {/* Map */}
       <MapComponent
-        trees={trees}
+        trees={filteredTrees}
         onMapClick={handleMapClick}
         onPolygonClick={handlePolygonClick}
         isSelectingPosition={isSelectingPosition}
@@ -187,11 +256,11 @@ export default function Home() {
       </div>
 
       {/* Record Button */}
-      <div className="record-button">
+      <div className="absolute top-5 right-5 mt-14 z-[500]">
         {isSelectingPosition ? (
           <div className="flex flex-col items-end gap-2">
             <div className="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse shadow-lg">
-              👆 คลิกบนแผนที่หรือ polygon เพื่อเลือกตำแหน่ง
+              👆 คลิกบนแผนที่เพื่อเลือกตำแหน่ง
             </div>
             <button
               onClick={() => setIsSelectingPosition(false)}
@@ -209,20 +278,6 @@ export default function Home() {
             <span>บันทึกต้นไม้</span>
           </button>
         )}
-      </div>
-
-      {/* Legend */}
-      <Legend
-        visibleLayers={visibleLayers}
-        onLayerToggle={handleLayerToggle}
-      />
-
-      {/* Stats Badge */}
-      <div className="absolute top-20 right-5 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg z-[500]">
-        <div className="flex items-center gap-2 text-sm font-medium text-green-700">
-          <span>🌳</span>
-          <span>{trees.length} ต้นไม้</span>
-        </div>
       </div>
 
       {/* Record Modal */}
