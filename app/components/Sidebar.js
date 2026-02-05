@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 // Simple Pie Chart component using SVG
 function PieChart({ data, colors }) {
@@ -84,31 +84,44 @@ export default function Sidebar({
         return Object.values(stats).sort((a, b) => b.quantity - a.quantity);
     }, [trees]);
 
-    // Compute unique districts and tambons
-    const locations = useMemo(() => {
-        const districts = new Set();
-        const tambons = new Set();
-        trees.forEach(tree => {
-            if (tree.district_name) districts.add(tree.district_name);
-            if (tree.tambon_name) tambons.add(tree.tambon_name);
-        });
-        return {
-            districts: Array.from(districts).sort(),
-            tambons: Array.from(tambons).sort()
-        };
-    }, [trees]);
+    // State for location data from polygon tables
+    const [availableDistricts, setAvailableDistricts] = useState([]);
+    const [availableTambons, setAvailableTambons] = useState([]);
 
-    // Compute filtered tambons based on selected district
-    const filteredTambons = useMemo(() => {
-        if (!selectedDistrict) return locations.tambons;
-        const tambons = new Set();
-        trees.forEach(tree => {
-            if (tree.district_name === selectedDistrict && tree.tambon_name) {
-                tambons.add(tree.tambon_name);
+    // Fetch available districts from polygon data
+    useEffect(() => {
+        const fetchDistricts = async () => {
+            try {
+                const response = await fetch('/api/locations/districts');
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setAvailableDistricts(data);
+                }
+            } catch (error) {
+                console.error('Error fetching districts:', error);
             }
-        });
-        return Array.from(tambons).sort();
-    }, [trees, selectedDistrict, locations.tambons]);
+        };
+        fetchDistricts();
+    }, []);
+
+    // Fetch available tambons when district changes
+    useEffect(() => {
+        const fetchTambons = async () => {
+            try {
+                const url = selectedDistrict
+                    ? `/api/locations/tambons?district=${encodeURIComponent(selectedDistrict)}`
+                    : '/api/locations/tambons';
+                const response = await fetch(url);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setAvailableTambons(data);
+                }
+            } catch (error) {
+                console.error('Error fetching tambons:', error);
+            }
+        };
+        fetchTambons();
+    }, [selectedDistrict]);
 
     // Total statistics
     const totalTrees = trees.reduce((sum, tree) => sum + (tree.quantity || 1), 0);
@@ -243,7 +256,7 @@ export default function Sidebar({
                                 className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                             >
                                 <option value="">ทุกอำเภอ</option>
-                                {locations.districts.map(district => (
+                                {availableDistricts.map(district => (
                                     <option key={district} value={district}>{district}</option>
                                 ))}
                             </select>
@@ -251,10 +264,10 @@ export default function Sidebar({
                                 value={selectedTambon || ''}
                                 onChange={(e) => onTambonChange(e.target.value || null)}
                                 className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                disabled={filteredTambons.length === 0}
+                                disabled={availableTambons.length === 0}
                             >
                                 <option value="">ทุกตำบล</option>
-                                {filteredTambons.map(tambon => (
+                                {availableTambons.map(tambon => (
                                     <option key={tambon} value={tambon}>{tambon}</option>
                                 ))}
                             </select>
@@ -264,37 +277,86 @@ export default function Sidebar({
                     {/* Layer Controls */}
                     <div className="mb-5">
                         <h3 className="text-sm font-semibold text-gray-700 mb-3">🗺️ ชั้นข้อมูลแผนที่</h3>
-                        <div className="space-y-1">
-                            <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={visibleLayers.districts}
-                                    onChange={() => onLayerToggle('districts')}
-                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                />
-                                <div className="w-4 h-4 border-2 border-blue-700 bg-blue-500/20 rounded" />
-                                <span className="text-sm text-gray-700">ขอบเขตอำเภอ</span>
-                            </label>
-                            <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={visibleLayers.tambons}
-                                    onChange={() => onLayerToggle('tambons')}
-                                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                                />
-                                <div className="w-4 h-4 border border-green-600 bg-green-500/20 rounded" />
-                                <span className="text-sm text-gray-700">ขอบเขตตำบล</span>
-                            </label>
-                            <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={visibleLayers.villages}
-                                    onChange={() => onLayerToggle('villages')}
-                                    className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
-                                />
-                                <div className="w-4 h-4 border border-orange-600 bg-orange-500/20 rounded" />
-                                <span className="text-sm text-gray-700">ขอบเขตหมู่บ้าน</span>
-                            </label>
+
+                        {/* Base Map Selection */}
+                        <div className="mb-3 bg-gray-50 rounded-lg p-3">
+                            <h4 className="text-xs font-medium text-gray-600 mb-2">แผนที่พื้นฐาน</h4>
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="baseMap"
+                                        checked={!visibleLayers.satellite}
+                                        onChange={() => onLayerToggle('satellite')}
+                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">🗺️ OpenStreetMap</span>
+                                </label>
+                                <label className="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="baseMap"
+                                        checked={visibleLayers.satellite}
+                                        onChange={() => onLayerToggle('satellite')}
+                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-700">🛰️ ภาพดาวเทียม</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Polygon Overlays */}
+                        <div className="mb-3">
+                            <h4 className="text-xs font-medium text-gray-600 mb-2">ชั้นข้อมูลขอบเขต</h4>
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={visibleLayers.districts}
+                                        onChange={() => onLayerToggle('districts')}
+                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                    />
+                                    <div className="w-4 h-4 border-2 border-blue-700 bg-blue-500/20 rounded" />
+                                    <span className="text-sm text-gray-700">ขอบเขตอำเภอ</span>
+                                </label>
+                                <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={visibleLayers.tambons}
+                                        onChange={() => onLayerToggle('tambons')}
+                                        className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
+                                    />
+                                    <div className="w-4 h-4 border border-green-600 bg-green-500/20 rounded" />
+                                    <span className="text-sm text-gray-700">ขอบเขตตำบล</span>
+                                </label>
+                                <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={visibleLayers.villages}
+                                        onChange={() => onLayerToggle('villages')}
+                                        className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+                                    />
+                                    <div className="w-4 h-4 border border-orange-600 bg-orange-500/20 rounded" />
+                                    <span className="text-sm text-gray-700">ขอบเขตหมู่บ้าน</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Data Overlays */}
+                        <div>
+                            <h4 className="text-xs font-medium text-gray-600 mb-2">ชั้นข้อมูลเพิ่มเติม</h4>
+                            <div className="space-y-1">
+                                <label className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={visibleLayers.heatmap}
+                                        onChange={() => onLayerToggle('heatmap')}
+                                        className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                                    />
+                                    <div className="w-4 h-4 bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded" />
+                                    <span className="text-sm text-gray-700">🔥 ความหนาแน่นต้นไม้</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 

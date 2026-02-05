@@ -7,7 +7,6 @@ export default function RecordModal({
     onClose,
     onSave,
     selectedPosition,
-    selectedLocation,
     currentUser
 }) {
     const [formData, setFormData] = useState({
@@ -20,7 +19,16 @@ export default function RecordModal({
         note: ''
     });
 
+    const [selectedImages, setSelectedImages] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
+
     const [treeOptions, setTreeOptions] = useState([]);
+    const [locationOptions, setLocationOptions] = useState({
+        districts: [],
+        tambons: [],
+        villages: []
+    });
 
     // Fetch tree options on mount
     useEffect(() => {
@@ -38,19 +46,74 @@ export default function RecordModal({
         fetchTrees();
     }, []);
 
-    // Update location fields when polygon is clicked
+    // Fetch districts on mount
     useEffect(() => {
-        if (selectedLocation) {
-            setFormData(prev => ({
-                ...prev,
-                villageName: selectedLocation.villageName || prev.villageName,
-                tambonName: selectedLocation.tambonName || prev.tambonName,
-                districtName: selectedLocation.districtName || prev.districtName
-            }));
-        }
-    }, [selectedLocation]);
+        const fetchDistricts = async () => {
+            try {
+                const res = await fetch('/api/locations/districts');
+                if (res.ok) {
+                    const data = await res.json();
+                    setLocationOptions(prev => ({ ...prev, districts: data }));
+                }
+            } catch (error) {
+                console.error('Error fetching districts:', error);
+            }
+        };
+        fetchDistricts();
+    }, []);
 
-    const handleSubmit = (e) => {
+    // Fetch tambons when district changes
+    useEffect(() => {
+        const fetchTambons = async () => {
+            if (!formData.districtName) {
+                setLocationOptions(prev => ({ ...prev, tambons: [], villages: [] }));
+                return;
+            }
+            try {
+                const url = `/api/locations/tambons?district=${encodeURIComponent(formData.districtName)}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    setLocationOptions(prev => ({ ...prev, tambons: data, villages: [] }));
+                }
+            } catch (error) {
+                console.error('Error fetching tambons:', error);
+            }
+        };
+        fetchTambons();
+    }, [formData.districtName]);
+
+    // Handle image selection
+    const handleImageSelect = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        // Limit to 5 images
+        if (files.length > 5) {
+            alert('สามารถอัปโหลดได้สูงสุด 5 รูปภาพ');
+            return;
+        }
+
+        setSelectedImages(files);
+
+        // Create preview URLs
+        const previews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(previews);
+    };
+
+    // Remove image from selection
+    const handleRemoveImage = (index) => {
+        const newImages = selectedImages.filter((_, i) => i !== index);
+        const newPreviews = imagePreviews.filter((_, i) => i !== index);
+
+        // Revoke old preview URL
+        URL.revokeObjectURL(imagePreviews[index]);
+
+        setSelectedImages(newImages);
+        setImagePreviews(newPreviews);
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!selectedPosition) {
@@ -63,23 +126,61 @@ export default function RecordModal({
             return;
         }
 
-        onSave({
-            ...formData,
-            lat: selectedPosition.lat,
-            lng: selectedPosition.lng
-        });
+        try {
+            setIsUploading(true);
+            let imagePaths = [];
 
-        // Reset form
-        setFormData({
-            treeName: '',
-            quantity: 1,
-            villageName: '',
-            tambonName: '',
-            districtName: '',
-            locationDetail: '',
-            note: ''
-        });
-        onClose();
+            // Upload images if any
+            if (selectedImages.length > 0) {
+                const uploadFormData = new FormData();
+                selectedImages.forEach(file => {
+                    uploadFormData.append('images', file);
+                });
+
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: uploadFormData
+                });
+
+                if (!uploadRes.ok) {
+                    const error = await uploadRes.json();
+                    throw new Error(error.error || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+                }
+
+                const uploadData = await uploadRes.json();
+                imagePaths = uploadData.paths;
+            }
+
+            // Save tree data with image paths
+            await onSave({
+                ...formData,
+                lat: selectedPosition.lat,
+                lng: selectedPosition.lng,
+                imagePaths
+            });
+
+            // Clean up preview URLs
+            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+
+            // Reset form
+            setFormData({
+                treeName: '',
+                quantity: 1,
+                villageName: '',
+                tambonName: '',
+                districtName: '',
+                locationDetail: '',
+                note: ''
+            });
+            setSelectedImages([]);
+            setImagePreviews([]);
+            onClose();
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert(error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handleChange = (e) => {
@@ -183,42 +284,62 @@ export default function RecordModal({
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        หมู่บ้าน
+                                        อำเภอ
                                     </label>
-                                    <input
-                                        type="text"
-                                        name="villageName"
-                                        value={formData.villageName}
-                                        onChange={handleChange}
-                                        placeholder="คลิก polygon หรือพิมพ์"
+                                    <select
+                                        name="districtName"
+                                        value={formData.districtName}
+                                        onChange={(e) => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                districtName: e.target.value,
+                                                tambonName: '', // Reset tambon when district changes
+                                                villageName: '' // Reset village when district changes
+                                            }));
+                                        }}
                                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                                    />
+                                    >
+                                        <option value="">เลือกอำเภอ</option>
+                                        {locationOptions.districts.map(district => (
+                                            <option key={district} value={district}>{district}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">
                                         ตำบล
                                     </label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="tambonName"
                                         value={formData.tambonName}
-                                        onChange={handleChange}
-                                        placeholder="คลิก polygon หรือพิมพ์"
-                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                                    />
+                                        onChange={(e) => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                tambonName: e.target.value,
+                                                villageName: '' // Reset village when tambon changes
+                                            }));
+                                        }}
+                                        disabled={!formData.districtName || locationOptions.tambons.length === 0}
+                                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        <option value="">เลือกตำบล</option>
+                                        {locationOptions.tambons.map(tambon => (
+                                            <option key={tambon} value={tambon}>{tambon}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                                        อำเภอ
+                                        หมู่บ้าน (ถ้ามี)
                                     </label>
                                     <input
                                         type="text"
-                                        name="districtName"
-                                        value={formData.districtName}
+                                        name="villageName"
+                                        value={formData.villageName}
                                         onChange={handleChange}
-                                        placeholder="คลิก polygon หรือพิมพ์"
+                                        placeholder="พิมพ์ชื่อหมู่บ้าน"
                                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
                                     />
                                 </div>
@@ -253,6 +374,45 @@ export default function RecordModal({
                             />
                         </div>
 
+                        {/* Image Upload */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                📸 รูปภาพต้นไม้ (ไม่เกิน 5 รูป)
+                            </label>
+                            <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                multiple
+                                onChange={handleImageSelect}
+                                disabled={isUploading}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 10MB ต่อรูป</p>
+
+                            {/* Image Previews */}
+                            {imagePreviews.length > 0 && (
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {imagePreviews.map((preview, index) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={preview}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveImage(index)}
+                                                disabled={isUploading}
+                                                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Buttons */}
                         <div className="flex gap-3 pt-4">
                             <button
@@ -264,9 +424,17 @@ export default function RecordModal({
                             </button>
                             <button
                                 type="submit"
-                                className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/30"
+                                disabled={isUploading}
+                                className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-lg shadow-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                💾 บันทึก
+                                {isUploading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <span className="animate-spin">⏳</span>
+                                        กำลังอัปโหลด...
+                                    </span>
+                                ) : (
+                                    <span>💾 บันทึก</span>
+                                )}
                             </button>
                         </div>
                     </form>

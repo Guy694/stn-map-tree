@@ -9,13 +9,22 @@ export async function GET(request) {
       SELECT 
         t.*,
         u.username,
-        u.full_name as planter_name
+        u.full_name as planter_name,
+        GROUP_CONCAT(ti.image_path) as images
       FROM trees t
       JOIN users u ON t.user_id = u.id
+      LEFT JOIN tree_images ti ON t.id = ti.tree_id
+      GROUP BY t.id
       ORDER BY t.created_at DESC
     `);
 
-        return NextResponse.json(trees);
+        // Parse images string into array
+        const treesWithImages = trees.map(tree => ({
+            ...tree,
+            images: tree.images ? tree.images.split(',') : []
+        }));
+
+        return NextResponse.json(treesWithImages);
     } catch (error) {
         console.error('Error fetching trees:', error);
         return NextResponse.json(
@@ -51,7 +60,8 @@ export async function POST(request) {
             tambonName,
             districtName,
             locationDetail,
-            note
+            note,
+            imagePaths // Array of image paths from upload
         } = data;
 
         // Validate required fields
@@ -82,21 +92,43 @@ export async function POST(request) {
             note || null
         ]);
 
-        // Fetch the created tree
+        const treeId = result.insertId;
+
+        // Insert images if provided
+        if (imagePaths && imagePaths.length > 0) {
+            // Insert each image individually since pool.execute() doesn't support bulk VALUES ?
+            for (const imagePath of imagePaths) {
+                await query(
+                    `INSERT INTO tree_images (tree_id, image_path) VALUES (?, ?)`,
+                    [treeId, imagePath]
+                );
+            }
+        }
+
+        // Fetch the created tree with images
         const newTree = await query(
             `SELECT 
         t.*,
         u.username,
-        u.full_name as planter_name
+        u.full_name as planter_name,
+        GROUP_CONCAT(ti.image_path) as images
       FROM trees t
       JOIN users u ON t.user_id = u.id
-      WHERE t.id = ?`,
-            [result.insertId]
+      LEFT JOIN tree_images ti ON t.id = ti.tree_id
+      WHERE t.id = ?
+      GROUP BY t.id`,
+            [treeId]
         );
+
+        // Parse images string into array
+        const treeWithImages = {
+            ...newTree[0],
+            images: newTree[0].images ? newTree[0].images.split(',') : []
+        };
 
         return NextResponse.json({
             success: true,
-            tree: newTree[0]
+            tree: treeWithImages
         });
     } catch (error) {
         console.error('Error creating tree:', error);
@@ -106,3 +138,4 @@ export async function POST(request) {
         );
     }
 }
+

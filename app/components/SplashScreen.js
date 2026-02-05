@@ -75,7 +75,7 @@ export default function SplashScreen({ onComplete }) {
 
                 {/* Title */}
                 <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-4 drop-shadow-lg animate-fade-in-up tracking-wide" style={{ animationDelay: '0.6s' }}>
-                    1 คน 1 ต้นไม้
+                    โครงการ 1 คน 1 ต้น
                 </h1>
                 <h2 className="text-2xl md:text-3xl font-medium text-white/95 text-center drop-shadow-md animate-fade-in-up tracking-wider" style={{ animationDelay: '0.8s' }}>
                     ฝนนี้ที่สตูล

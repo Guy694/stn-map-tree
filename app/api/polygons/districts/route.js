@@ -20,24 +20,42 @@ export async function GET(request) {
         // Convert to GeoJSON FeatureCollection
         const geojson = {
             type: 'FeatureCollection',
-            features: districts.map(district => ({
-                type: 'Feature',
-                properties: {
-                    id: district.id,
-                    name: district.dis_name,
-                    provinceName: district.pro_name,
-                    districtCode: district.dis_code,
-                    provinceCode: district.pro_code
-                },
-                geometry: JSON.parse(district.geometry)
-            }))
+            features: districts.map(district => {
+                // Handle geometry - ST_AsGeoJSON might return string or object
+                let geometry;
+                if (typeof district.geometry === 'string') {
+                    geometry = JSON.parse(district.geometry);
+                } else if (typeof district.geometry === 'object' && district.geometry !== null) {
+                    // Already an object, use as-is
+                    geometry = district.geometry;
+                } else {
+                    throw new Error(`Invalid geometry type: ${typeof district.geometry}`);
+                }
+
+                return {
+                    type: 'Feature',
+                    properties: {
+                        id: district.id,
+                        name: district.dis_name,
+                        provinceName: district.pro_name,
+                        districtCode: district.dis_code,
+                        provinceCode: district.pro_code
+                    },
+                    geometry
+                };
+            })
         };
 
         return NextResponse.json(geojson);
     } catch (error) {
         console.error('Error fetching districts:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+        });
         return NextResponse.json(
-            { error: 'ไม่สามารถดึงข้อมูลอำเภอได้' },
+            { error: 'ไม่สามารถดึงข้อมูลอำเภอได้', details: error.message },
             { status: 500 }
         );
     }

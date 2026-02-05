@@ -32,7 +32,9 @@ export default function Home() {
   const [visibleLayers, setVisibleLayers] = useState({
     districts: true,
     tambons: true,
-    villages: false
+    villages: false,
+    satellite: false,
+    heatmap: false
   });
 
   // Filter states
@@ -290,7 +292,6 @@ export default function Home() {
         }}
         onSave={handleSaveTree}
         selectedPosition={selectedPosition}
-        selectedLocation={selectedLocation}
         currentUser={currentUser}
       />
 
