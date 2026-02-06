@@ -7,10 +7,13 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        fullName: ''
+        fullName: '',
+        healthFacilityId: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [healthFacilities, setHealthFacilities] = useState([]);
+    const [facilitiesLoading, setFacilitiesLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -18,6 +21,36 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             [e.target.name]: e.target.value
         });
         setError('');
+    };
+
+    // Fetch health facilities when switching to registration mode
+    // Re-implemented to support new schema (typecode, district_name)
+    const fetchHealthFacilities = async () => {
+        if (healthFacilities.length > 0) return;
+
+        setFacilitiesLoading(true);
+        try {
+            const response = await fetch('/api/health-facilities');
+            if (response.ok) {
+                const data = await response.json();
+                setHealthFacilities(data);
+            }
+        } catch (err) {
+            console.error('Error fetching health facilities:', err);
+        } finally {
+            setFacilitiesLoading(false);
+        }
+    };
+
+    const toggleMode = () => {
+        const newIsRegistering = !isRegistering;
+        setIsRegistering(newIsRegistering);
+        setError('');
+        setFormData({ username: '', password: '', fullName: '', healthFacilityId: '' });
+
+        if (newIsRegistering) {
+            fetchHealthFacilities();
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -48,13 +81,13 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             if (isRegistering) {
                 // After registration, switch to login
                 setIsRegistering(false);
-                setFormData({ username: '', password: '', fullName: '' });
+                setFormData({ username: '', password: '', fullName: '', healthFacilityId: '' });
                 setError('');
                 alert('สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ');
             } else {
                 // Login successful
                 onLoginSuccess(data.user);
-                setFormData({ username: '', password: '', fullName: '' });
+                setFormData({ username: '', password: '', fullName: '', healthFacilityId: '' });
                 onClose();
             }
         } catch (err) {
@@ -64,11 +97,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         }
     };
 
-    const toggleMode = () => {
-        setIsRegistering(!isRegistering);
-        setError('');
-        setFormData({ username: '', password: '', fullName: '' });
-    };
+
 
     if (!isOpen) return null;
 
@@ -121,20 +150,45 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
                     </div>
 
                     {isRegistering && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                ชื่อ-นามสกุล
-                            </label>
-                            <input
-                                type="text"
-                                name="fullName"
-                                value={formData.fullName}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
-                                placeholder="กรอกชื่อ-นามสกุล"
-                            />
-                        </div>
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    ชื่อ-นามสกุล
+                                </label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition"
+                                    placeholder="กรอกชื่อ-นามสกุล"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    หน่วยงาน <span className="text-gray-400 text-xs">(ถ้ามี)</span>
+                                </label>
+                                <select
+                                    name="healthFacilityId"
+                                    value={formData.healthFacilityId}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition bg-white"
+                                    disabled={facilitiesLoading}
+                                >
+                                    <option value="">-- เลือกหน่วยงาน --</option>
+                                    {healthFacilities.map(facility => (
+                                        <option key={facility.id} value={facility.id}>
+                                            {facility.name} {facility.typecode ? `(${facility.typecode})` : ''} - {facility.district_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {facilitiesLoading && (
+                                    <p className="text-xs text-gray-500 mt-1">กำลังโหลดรายการหน่วยงาน...</p>
+                                )}
+                            </div>
+                        </>
                     )}
 
                     {/* Buttons */}

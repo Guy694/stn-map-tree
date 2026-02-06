@@ -155,17 +155,25 @@ export default function Sidebar({
                 <div className="h-full overflow-y-auto p-5">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl">🌳</span>
-                            <h1 className="font-bold text-lg text-gray-800">1 คน 1 ต้นไม้ ฝนนี้ที่สตูล</h1>
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <span className="text-3xl drop-shadow-lg animate-pulse-slow">🌳</span>
+                                <span className="absolute -bottom-1 -right-1 text-sm">🌿</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <h1 className="font-bold text-xl bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent drop-shadow-sm leading-tight">
+                                    1 คน 1 ต้น
+                                </h1>
+                                <p className="text-xs font-medium text-gray-600 mt-0.5 tracking-wide">
+                                    ฝนนี้ที่สตูล 🌧️
+                                </p>
+                            </div>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 transition"
                         >
-                            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                            </svg>
+                            ✕
                         </button>
                     </div>
 

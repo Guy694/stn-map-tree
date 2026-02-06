@@ -12,7 +12,7 @@ export async function GET(request) {
         dis_code,
         pro_code,
         ST_AsGeoJSON(geometry) as geometry
-      FROM districts_polygon
+      FROM satun_district_polygon
       WHERE pro_name = 'สตูล'
       ORDER BY dis_name
     `);

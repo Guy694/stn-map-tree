@@ -104,7 +104,9 @@ export default function MapComponent({
     onMapClick,
     isSelectingPosition,
     visibleLayers,
-    onPolygonClick
+    onPolygonClick,
+    selectedTree = null,
+    isAdminView = false
 }) {
     // Satun Province center coordinates
     const satunCenter = [6.6238, 99.9500];
@@ -286,88 +288,101 @@ export default function MapComponent({
             )}
 
             {/* Tree markers */}
-            {trees.map((tree) => (
-                <Marker
-                    key={tree.id}
-                    position={[tree.lat, tree.lng]}
-                    icon={createTreeIcon(tree.tree_name)}
-                >
-                    <Popup>
-                        <div className="min-w-[200px]">
-                            {/* Header */}
-                            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-                                <span className="text-2xl">🌳</span>
-                                <div>
-                                    <h3 className="font-bold text-green-800 text-base">ต้น{tree.tree_name}</h3>
+            {trees.map((tree) => {
+                const isSelected = isAdminView && selectedTree && selectedTree.id === tree.id;
+                const markerIcon = isSelected
+                    ? new L.DivIcon({
+                        className: 'tree-marker-icon',
+                        html: `<div style="font-size: 48px; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.5)); color: ${getTreeColor(tree.tree_name)}; animation: pulse 1s ease-in-out infinite;">🌳</div>`,
+                        iconSize: [60, 60],
+                        iconAnchor: [30, 60],
+                        popupAnchor: [0, -60]
+                    })
+                    : createTreeIcon(tree.tree_name);
 
-                                </div>
-                            </div>
+                return (
+                    <Marker
+                        key={tree.id}
+                        position={[tree.lat, tree.lng]}
+                        icon={markerIcon}
+                    >
+                        <Popup>
+                            <div className="min-w-[200px]">
+                                {/* Header */}
+                                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
+                                    <span className="text-2xl">🌳</span>
+                                    <div>
+                                        <h3 className="font-bold text-green-800 text-base">ต้น{tree.tree_name}</h3>
 
-                            {/* Images Gallery */}
-                            {tree.images && tree.images.length > 0 && (
-                                <div className="mb-3">
-                                    <div className={`grid gap-2 ${tree.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                                        {tree.images.map((imagePath, index) => (
-                                            <div key={index} className="relative">
-                                                <img
-                                                    src={imagePath}
-                                                    alt={`${tree.tree_name} - รูปที่ ${index + 1}`}
-                                                    className="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition"
-                                                    onClick={() => window.open(imagePath, '_blank')}
-                                                />
-                                            </div>
-                                        ))}
                                     </div>
-                                    {tree.images.length > 1 && (
-                                        <p className="text-xs text-gray-500 text-center mt-1">
-                                            คลิกที่รูปเพื่อดูขนาดเต็ม ({tree.images.length} รูป)
-                                        </p>
+                                </div>
+
+                                {/* Images Gallery */}
+                                {tree.images && tree.images.length > 0 && (
+                                    <div className="mb-3">
+                                        <div className={`grid gap-2 ${tree.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+                                            {tree.images.map((imagePath, index) => (
+                                                <div key={index} className="relative">
+                                                    <img
+                                                        src={imagePath}
+                                                        alt={`${tree.tree_name} - รูปที่ ${index + 1}`}
+                                                        className="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition"
+                                                        onClick={() => window.open(imagePath, '_blank')}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {tree.images.length > 1 && (
+                                            <p className="text-xs text-gray-500 text-center mt-1">
+                                                คลิกที่รูปเพื่อดูขนาดเต็ม ({tree.images.length} รูป)
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Details */}
+                                <div className="space-y-2 text-sm">
+                                    <div className="flex items-start gap-2">
+                                        <span className="text-gray-400">👤</span>
+                                        <span className="text-gray-700">ผู้ปลูก : {tree.planter_name}</span>
+                                    </div>
+
+                                    {tree.district_name && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-gray-400">📍</span>
+                                            <span className="text-gray-700">
+                                                {tree.village_name && `${tree.village_name} `}
+                                                {tree.tambon_name && `ต.${tree.tambon_name} `}
+                                                {tree.district_name && `อ.${tree.district_name}`}
+                                            </span>
+                                        </div>
                                     )}
-                                </div>
-                            )}
 
-                            {/* Details */}
-                            <div className="space-y-2 text-sm">
-                                <div className="flex items-start gap-2">
-                                    <span className="text-gray-400">👤</span>
-                                    <span className="text-gray-700">ผู้ปลูก : {tree.planter_name}</span>
-                                </div>
+                                    {tree.location_detail && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-gray-400">🗺️</span>
+                                            <span className="text-gray-700">{tree.location_detail}</span>
+                                        </div>
+                                    )}
 
-                                {tree.district_name && (
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-gray-400">📍</span>
-                                        <span className="text-gray-700">
-                                            {tree.village_name && `${tree.village_name} `}
-                                            {tree.tambon_name && `ต.${tree.tambon_name} `}
-                                            {tree.district_name && `อ.${tree.district_name}`}
-                                        </span>
+                                    {tree.note && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-gray-400">📝</span>
+                                            <span className="text-gray-600 text-xs">{tree.note}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
+                                        <span className="text-gray-400">📅</span>
+                                        <span className="text-gray-500 text-xs">{formatDate(tree.created_at)}</span>
                                     </div>
-                                )}
 
-                                {tree.location_detail && (
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-gray-400">🗺️</span>
-                                        <span className="text-gray-700">{tree.location_detail}</span>
-                                    </div>
-                                )}
-
-                                {tree.note && (
-                                    <div className="flex items-start gap-2">
-                                        <span className="text-gray-400">📝</span>
-                                        <span className="text-gray-600 text-xs">{tree.note}</span>
-                                    </div>
-                                )}
-
-                                <div className="flex items-start gap-2 pt-2 border-t border-gray-100">
-                                    <span className="text-gray-400">📅</span>
-                                    <span className="text-gray-500 text-xs">{formatDate(tree.created_at)}</span>
                                 </div>
-
                             </div>
-                        </div>
-                    </Popup>
-                </Marker>
-            ))}
+                        </Popup>
+                    </Marker>
+                );
+            })}
         </MapContainer>
     );
 }

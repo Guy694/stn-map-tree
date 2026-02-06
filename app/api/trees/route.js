@@ -60,6 +60,7 @@ export async function POST(request) {
             tambonName,
             districtName,
             locationDetail,
+            plantingDate,
             note,
             imagePaths // Array of image paths from upload
         } = data;
@@ -77,8 +78,8 @@ export async function POST(request) {
       INSERT INTO trees (
         user_id, tree_name, quantity, lat, lng,
         village_name, tambon_name, district_name,
-        location_detail, note
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        location_detail, planting_date, note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
             user.id,
             treeName,
@@ -89,6 +90,7 @@ export async function POST(request) {
             tambonName || null,
             districtName || null,
             locationDetail || null,
+            plantingDate || null,
             note || null
         ]);
 

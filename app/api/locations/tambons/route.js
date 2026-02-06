@@ -8,7 +8,7 @@ export async function GET(request) {
 
         let sql = `
             SELECT DISTINCT tam_name as name, dis_name
-            FROM tambons_polygon
+            FROM satun_tambon_polygon
             WHERE pro_name = 'สตูล'
         `;
 

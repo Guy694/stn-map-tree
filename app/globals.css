@@ -13,7 +13,7 @@
   --primary-700: #15803d;
   --primary-800: #166534;
   --primary-900: #14532d;
-  
+
   --background: #ffffff;
   --foreground: #14532d;
 }
@@ -112,6 +112,7 @@ body {
     opacity: 0;
     transform: scale(0.95) translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -188,6 +189,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -195,13 +197,45 @@ body {
 }
 
 @keyframes bounceSlow {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease-out forwards;
@@ -212,3 +246,109 @@ body {
   animation: bounceSlow 2s ease-in-out infinite;
 }
 
+/* Admin Dashboard Styles */
+
+/* Navbar gradient */
+.navbar-gradient {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 50%, #14532d 100%);
+  backdrop-filter: blur(10px);
+}
+
+/* Admin Layout */
+.admin-layout {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f0fdf4, #dcfce7);
+}
+
+/* Split View Layout */
+.admin-split-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  height: calc(100vh - 80px);
+  /* Subtract navbar height */
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .admin-split-view {
+    grid-template-columns: 1fr;
+    grid-template-rows: 50vh 1fr;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+}
+
+/* Map Section */
+.admin-map-section {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Table Section */
+.admin-table-section {
+  padding: 1.5rem;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+@media (max-width: 1024px) {
+  .admin-table-section {
+    padding: 1rem;
+  }
+}
+
+/* Admin Table Styles */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.admin-table thead th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.admin-table tbody td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.admin-table tbody tr {
+  background: white;
+  transition: all 0.2s ease;
+}
+
+/* Table Hover Effect */
+.table-hover:hover {
+  background: linear-gradient(to right, #f0fdf4, #dcfce7) !important;
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.1);
+}
+
+/* Zebra Striping */
+.admin-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+  .admin-table {
+    font-size: 0.75rem;
+  }
+
+  .admin-table thead th,
+  .admin-table tbody td {
+    padding: 0.5rem;
+  }
+}

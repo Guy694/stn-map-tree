@@ -26,9 +26,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [isSelectingPosition, setIsSelectingPosition] = useState(false);
   const [visibleLayers, setVisibleLayers] = useState({
     districts: true,
     tambons: true,
@@ -89,25 +87,14 @@ export default function Home() {
     });
   }, [trees, selectedTreeTypes, selectedDistrict, selectedTambon]);
 
-  // Handle map click
+  // Handle map click - Keep for future features
   const handleMapClick = (latlng) => {
-    if (isSelectingPosition) {
-      setSelectedPosition(latlng);
-      setIsModalOpen(true);
-      setIsSelectingPosition(false);
-    }
+    // Can be used for other features later
   };
 
-  // Handle polygon click
+  // Handle polygon click - Keep for filtering
   const handlePolygonClick = (properties, layerType) => {
-    if (isSelectingPosition) {
-      const location = {
-        villageName: layerType === 'villages' ? properties.name : undefined,
-        tambonName: layerType === 'tambons' ? properties.name : properties.tambonName,
-        districtName: layerType === 'districts' ? properties.name : properties.districtName
-      };
-      setSelectedLocation(location);
-    }
+    // Can be used for filtering or info display
   };
 
   // Handle save tree
@@ -133,7 +120,6 @@ export default function Home() {
 
       // Add new tree to list
       setTrees(prev => [data.tree, ...prev]);
-      setSelectedPosition(null);
       setSelectedLocation(null);
       alert('บันทึกข้อมูลสำเร็จ! 🎉');
     } catch (error) {
@@ -148,14 +134,14 @@ export default function Home() {
       setIsLoginModalOpen(true);
       return;
     }
-    setIsSelectingPosition(true);
-    setIsModalOpen(false);
+    // Open form directly with embedded map
+    setIsModalOpen(true);
   };
 
   // Handle login success
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
-    setIsSelectingPosition(true); // Auto start recording after login
+    setIsModalOpen(true); // Auto open form after login
   };
 
   // Handle logout
@@ -227,7 +213,6 @@ export default function Home() {
         trees={filteredTrees}
         onMapClick={handleMapClick}
         onPolygonClick={handlePolygonClick}
-        isSelectingPosition={isSelectingPosition}
         visibleLayers={visibleLayers}
       />
 
@@ -259,19 +244,7 @@ export default function Home() {
 
       {/* Record Button */}
       <div className="absolute top-5 right-5 mt-14 z-[500]">
-        {isSelectingPosition ? (
-          <div className="flex flex-col items-end gap-2">
-            <div className="bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-medium animate-pulse shadow-lg">
-              👆 คลิกบนแผนที่เพื่อเลือกตำแหน่ง
-            </div>
-            <button
-              onClick={() => setIsSelectingPosition(false)}
-              className="bg-gray-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-600 transition-colors shadow-lg"
-            >
-              ✕ ยกเลิก
-            </button>
-          </div>
-        ) : (
+        {currentUser && (
           <button
             onClick={handleRecordClick}
             className="btn-primary flex items-center gap-2"
@@ -285,13 +258,8 @@ export default function Home() {
       {/* Record Modal */}
       <RecordModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedPosition(null);
-          setSelectedLocation(null);
-        }}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSaveTree}
-        selectedPosition={selectedPosition}
         currentUser={currentUser}
       />
 
