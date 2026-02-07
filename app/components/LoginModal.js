@@ -30,7 +30,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
         setFacilitiesLoading(true);
         try {
-            const response = await fetch('/api/health-facilities');
+            const response = await fetch('/stn-tree/api/health-facilities');
             if (response.ok) {
                 const data = await response.json();
                 setHealthFacilities(data);
@@ -59,7 +59,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         setLoading(true);
 
         try {
-            const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+            const endpoint = isRegistering ? '/stn-tree/api/auth/register' : '/stn-tree/api/auth/login';
             const body = isRegistering
                 ? formData
                 : { username: formData.username, password: formData.password };

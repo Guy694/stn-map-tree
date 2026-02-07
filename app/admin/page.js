@@ -34,7 +34,7 @@ export default function AdminPage() {
 
     const checkAuth = async () => {
         try {
-            const response = await fetch('/api/auth/session');
+            const response = await fetch('/stn-tree/api/auth/session');
             const data = await response.json();
 
             // Temporarily disabled for testing - uncomment for production
@@ -63,7 +63,7 @@ export default function AdminPage() {
 
     const fetchTrees = async () => {
         try {
-            const response = await fetch('/api/trees');
+            const response = await fetch('/stn-tree/api/trees');
             const data = await response.json();
             setTrees(data);
         } catch (error) {
@@ -73,7 +73,7 @@ export default function AdminPage() {
 
     const handleLogout = async () => {
         try {
-            await fetch('/api/auth/logout', { method: 'POST' });
+            await fetch('/stn-tree/api/auth/logout', { method: 'POST' });
             router.push('/');
         } catch (error) {
             console.error('Error logging out:', error);

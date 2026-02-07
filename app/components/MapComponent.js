@@ -144,9 +144,9 @@ export default function MapComponent({
         const fetchPolygons = async () => {
             try {
                 const [districtsRes, tambonsRes, villagesRes] = await Promise.all([
-                    fetch('/api/polygons/districts').then(r => r.json()),
-                    fetch('/api/polygons/tambons').then(r => r.json()),
-                    fetch('/api/polygons/villages').then(r => r.json())
+                    fetch('/stn-tree/api/polygons/districts').then(r => r.json()),
+                    fetch('/stn-tree/api/polygons/tambons').then(r => r.json()),
+                    fetch('/stn-tree/api/polygons/villages').then(r => r.json())
                 ]);
 
                 // Validate and set only valid GeoJSON data

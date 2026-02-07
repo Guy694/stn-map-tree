@@ -69,13 +69,13 @@ export default function SplashScreen({ onComplete }) {
                 {/* Logos */}
                 <div className="flex items-center justify-center gap-8 md:gap-12 mb-8">
                     <img
-                        src="/img/Logo_moph.png"
+                        src="/stn-tree/img/Logo_moph.png"
                         alt="กระทรวงสาธารณสุข"
                         className="h-24 md:h-32 w-auto drop-shadow-2xl animate-fade-in-up hover:scale-105 transition-transform duration-300"
                         style={{ animationDelay: '0.3s' }}
                     />
                     <img
-                        src="/img/satun.png"
+                        src="/stn-tree/img/satun.png"
                         alt="จังหวัดสตูล"
                         className="h-24 md:h-32 w-auto drop-shadow-2xl animate-fade-in-up hover:scale-105 transition-transform duration-300"
                         style={{ animationDelay: '0.5s' }}

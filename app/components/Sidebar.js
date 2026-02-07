@@ -93,7 +93,7 @@ export default function Sidebar({
     useEffect(() => {
         const fetchDistricts = async () => {
             try {
-                const response = await fetch('/api/locations/districts');
+                const response = await fetch('/stn-tree/api/locations/districts');
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setAvailableDistricts(data);
@@ -110,8 +110,8 @@ export default function Sidebar({
         const fetchTambons = async () => {
             try {
                 const url = selectedDistrict
-                    ? `/api/locations/tambons?district=${encodeURIComponent(selectedDistrict)}`
-                    : '/api/locations/tambons';
+                    ? `/stn-tree/api/locations/tambons?district=${encodeURIComponent(selectedDistrict)}`
+                    : '/stn-tree/api/locations/tambons';
                 const response = await fetch(url);
                 const data = await response.json();
                 if (Array.isArray(data)) {

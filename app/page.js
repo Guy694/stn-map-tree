@@ -50,7 +50,7 @@ export default function Home() {
 
   const fetchSession = async () => {
     try {
-      const response = await fetch('/api/auth/session');
+      const response = await fetch('/stn-tree/api/auth/session');
       const data = await response.json();
       if (data.user) {
         setCurrentUser(data.user);
@@ -62,7 +62,7 @@ export default function Home() {
 
   const fetchTrees = async () => {
     try {
-      const response = await fetch('/api/trees');
+      const response = await fetch('/stn-tree/api/trees');
       const data = await response.json();
       setTrees(data);
     } catch (error) {
@@ -107,7 +107,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch('/api/trees', {
+      const response = await fetch('/stn-tree/api/trees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(treeData)
@@ -149,7 +149,7 @@ export default function Home() {
   // Handle logout
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/stn-tree/api/auth/logout', { method: 'POST' });
       setCurrentUser(null);
       alert('ออกจากระบบสำเร็จ');
     } catch (error) {
