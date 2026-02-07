@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start -p 3000",
+    "lint": "eslint",
+    "docker:build": "docker build -t stn-tree .",
+    "docker:run": "docker-compose up -d"
   },
   "dependencies": {
     "@types/leaflet.heat": "^0.2.5",
