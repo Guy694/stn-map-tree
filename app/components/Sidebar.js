@@ -161,10 +161,10 @@ export default function Sidebar({
                                 <span className="absolute -bottom-1 -right-1 text-sm">🌿</span>
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="font-bold text-xl bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent drop-shadow-sm leading-tight">
+                                <h1 className="font-bold text-2xl bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent drop-shadow-sm leading-tight">
                                     1 คน 1 ต้น
                                 </h1>
-                                <p className="text-xs font-medium text-gray-600 mt-0.5 tracking-wide">
+                                <p className="text-lg font-medium text-gray-600 mt-0.5 tracking-wide">
                                     ฝนนี้ที่สตูล 🌧️
                                 </p>
                             </div>
