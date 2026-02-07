@@ -6,6 +6,7 @@ import RecordModal from './components/RecordModal';
 import LoginModal from './components/LoginModal';
 import Sidebar from './components/Sidebar';
 import SplashScreen from './components/SplashScreen';
+import UserGuideModal from './components/UserGuideModal';
 
 // Dynamic import MapComponent to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('./components/MapComponent'), {
@@ -26,6 +27,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [visibleLayers, setVisibleLayers] = useState({
     districts: true,
@@ -206,6 +208,7 @@ export default function Home() {
         onDistrictChange={handleDistrictChange}
         selectedTambon={selectedTambon}
         onTambonChange={handleTambonChange}
+        onOpenGuide={() => setIsGuideModalOpen(true)}
       />
 
       {/* Map */}
@@ -268,6 +271,12 @@ export default function Home() {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* User Guide Modal */}
+      <UserGuideModal
+        isOpen={isGuideModalOpen}
+        onClose={() => setIsGuideModalOpen(false)}
       />
     </div>
   );

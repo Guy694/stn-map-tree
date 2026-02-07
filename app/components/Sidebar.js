@@ -60,7 +60,8 @@ export default function Sidebar({
     selectedDistrict,
     onDistrictChange,
     selectedTambon,
-    onTambonChange
+    onTambonChange,
+    onOpenGuide
 }) {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -369,11 +370,22 @@ export default function Sidebar({
                     </div>
 
                     {/* Tree Legend */}
-                    <div className="border-t border-gray-200 pt-4">
+                    <div className="border-t border-gray-200 pt-4 mb-4">
                         <div className="flex items-center gap-2">
                             <span className="text-2xl">🌳</span>
                             <span className="text-sm text-gray-700">ต้นไม้ที่บันทึก</span>
                         </div>
+                    </div>
+
+                    {/* User Guide Button */}
+                    <div className="border-t border-gray-200 pt-4">
+                        <button
+                            onClick={onOpenGuide}
+                            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <span className="text-xl">📖</span>
+                            <span>คู่มือการใช้งาน</span>
+                        </button>
                     </div>
                 </div>
             </div>
