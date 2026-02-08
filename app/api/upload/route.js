@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { cookies } from 'next/headers';
 
@@ -59,6 +59,14 @@ export async function POST(request) {
 
             // Save file
             const uploadDir = join(process.cwd(), 'public', 'uploads', 'trees');
+
+            // Ensure directory exists
+            try {
+                await mkdir(uploadDir, { recursive: true });
+            } catch (error) {
+                console.error('Error creating directory:', error);
+            }
+
             const filepath = join(uploadDir, filename);
             await writeFile(filepath, buffer);
 
