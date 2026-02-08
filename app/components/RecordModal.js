@@ -156,7 +156,8 @@ export default function RecordModal({
 
                 const uploadRes = await fetch('/stn-tree/api/upload', {
                     method: 'POST',
-                    body: uploadFormData
+                    body: uploadFormData,
+                    credentials: 'include' // Important: Send cookies with request
                 });
 
                 if (!uploadRes.ok) {
