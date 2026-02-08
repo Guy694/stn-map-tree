@@ -110,7 +110,8 @@ export default function Home() {
       const response = await fetch('/stn-tree/api/trees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(treeData)
+        body: JSON.stringify(treeData),
+        credentials: 'include' // Important: Send cookies with request
       });
 
       const data = await response.json();
