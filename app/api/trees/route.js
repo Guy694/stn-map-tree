@@ -41,6 +41,16 @@ export async function POST(request) {
         const cookieStore = await cookies();
         const sessionCookie = cookieStore.get('session');
 
+        console.log('API POST /trees - Cookie checking');
+        console.log('Has session cookie:', !!sessionCookie);
+        if (sessionCookie) {
+            console.log('Session cookie value (partial):', sessionCookie.value.substring(0, 10) + '...');
+        } else {
+            console.log('No session cookie found in request');
+            const allCookies = cookieStore.getAll();
+            console.log('All cookies present:', allCookies.map(c => c.name));
+        }
+
         if (!sessionCookie) {
             return NextResponse.json(
                 { error: 'กรุณาเข้าสู่ระบบก่อนบันทึกข้อมูล' },
