@@ -33,8 +33,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Set correct permissions
-RUN chown -R nextjs:nodejs /app
+# Create uploads directory with correct permissions
+RUN mkdir -p /app/public/uploads/trees && \
+    chown -R nextjs:nodejs /app
 
 USER nextjs
 
