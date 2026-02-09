@@ -93,7 +93,7 @@ export default function Sidebar({
     useEffect(() => {
         const fetchDistricts = async () => {
             try {
-                const response = await fetch('/stn-tree/api/locations/districts');
+                const response = await fetch('/stn-tree/api/locations/districts/');
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setAvailableDistricts(data);

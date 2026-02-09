@@ -30,7 +30,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
 
         setFacilitiesLoading(true);
         try {
-            const response = await fetch('/stn-tree/api/health-facilities');
+            const response = await fetch('/stn-tree/api/health-facilities/');
             if (response.ok) {
                 const data = await response.json();
                 setHealthFacilities(data);

@@ -51,7 +51,7 @@ export default function RecordModal({
     useEffect(() => {
         const fetchTrees = async () => {
             try {
-                const res = await fetch('/stn-tree/api/trees/species');
+                const res = await fetch('/stn-tree/api/trees/species/');
                 if (res.ok) {
                     const data = await res.json();
                     setTreeOptions(data);
@@ -67,7 +67,7 @@ export default function RecordModal({
     useEffect(() => {
         const fetchDistricts = async () => {
             try {
-                const res = await fetch('/stn-tree/api/locations/districts');
+                const res = await fetch('/stn-tree/api/locations/districts/');
                 if (res.ok) {
                     const data = await res.json();
                     setLocationOptions(prev => ({ ...prev, districts: data }));
@@ -87,7 +87,7 @@ export default function RecordModal({
                 return;
             }
             try {
-                const url = `/stn-tree/api/locations/tambons?district=${encodeURIComponent(formData.districtName)}`;
+                const url = `/stn-tree/api/locations/tambons/?district=${encodeURIComponent(formData.districtName)}`;
                 const res = await fetch(url);
                 if (res.ok) {
                     const data = await res.json();
@@ -154,7 +154,7 @@ export default function RecordModal({
                     uploadFormData.append('images', file);
                 });
 
-                const uploadRes = await fetch('/stn-tree/api/upload', {
+                const uploadRes = await fetch('/stn-tree/api/upload/', {
                     method: 'POST',
                     body: uploadFormData,
                     credentials: 'include' // Important: Send cookies with request
