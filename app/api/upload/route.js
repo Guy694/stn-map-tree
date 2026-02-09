@@ -82,7 +82,10 @@ export async function POST(request) {
     } catch (error) {
         console.error('Error uploading images:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ' },
+            {
+                error: 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ',
+                details: error.message
+            },
             { status: 500 }
         );
     }
