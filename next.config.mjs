@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  //   basePath: '/stn-tree',
-  // assetPrefix: '/stn-tree',
+  basePath: '/stn-tree',
+  assetPrefix: '/stn-tree',
   reactCompiler: true,
 };
 
