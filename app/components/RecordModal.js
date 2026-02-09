@@ -219,7 +219,7 @@ export default function RecordModal({
                 {/* Header */}
                 <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-500 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <span className="text-3xl">🌳</span>
+                        <span className="text-3xl"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
                         <h2 className="text-xl font-bold text-white">บันทึกข้อมูลต้นไม้</h2>
                     </div>
                     <button

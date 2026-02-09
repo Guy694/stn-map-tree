@@ -10,7 +10,7 @@ export default function UserGuideModal({ isOpen, onClose }) {
     const steps = [
         {
             title: "ยินดีต้อนรับสู่ระบบ 1 คน 1 ต้น ฝนนี้ที่สตูล",
-            icon: "🌳",
+            icon: "<img src=\"/stn-tree/img/mahogani.png\" alt=\"logo_tree\" width=\"40\" height=\"40\" />",
             content: (
                 <div className="space-y-4">
                     <p className="text-gray-700">
@@ -72,7 +72,7 @@ export default function UserGuideModal({ isOpen, onClose }) {
                             <span className="text-xl">1️⃣</span>
                             <div>
                                 <h4 className="font-semibold text-green-800">คลิกปุ่ม "บันทึกต้นไม้"</h4>
-                                <p className="text-green-700 text-sm">ที่มุมบนขวาของหน้าจอ (ปุ่มสีเขียว 🌳)</p>
+                                <p className="text-green-700 text-sm">ที่มุมบนขวาของหน้าจอ (ปุ่มสีเขียว <img src="/stn-tree/img/mahogani.png" alt="logo_tree" width="40" height="40" />)</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3">
@@ -266,10 +266,10 @@ export default function UserGuideModal({ isOpen, onClose }) {
                             <div
                                 key={index}
                                 className={`h-1 flex-1 rounded-full transition-all ${index === currentStep
-                                        ? 'bg-white'
-                                        : index < currentStep
-                                            ? 'bg-white/60'
-                                            : 'bg-white/20'
+                                    ? 'bg-white'
+                                    : index < currentStep
+                                        ? 'bg-white/60'
+                                        : 'bg-white/20'
                                     }`}
                             />
                         ))}

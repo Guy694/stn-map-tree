@@ -18,7 +18,7 @@ export default function Navbar({ currentUser, onLogout }) {
                 <div className="flex items-center justify-between">
                     {/* Logo and Project Name */}
                     <div className="flex items-center gap-4">
-                        <div className="text-4xl animate-bounce-slow">🌳</div>
+                        <div className="text-4xl animate-bounce-slow"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>
                         <div>
                             <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-lg">
                                 โครงการ 1 คน 1 ต้น หนีฝนสตูล

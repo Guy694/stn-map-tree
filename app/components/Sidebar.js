@@ -158,7 +158,7 @@ export default function Sidebar({
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <span className="text-3xl drop-shadow-lg animate-pulse-slow">🌳</span>
+                                <span className="text-3xl drop-shadow-lg animate-pulse-slow"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
                                 <span className="absolute -bottom-1 -right-1 text-sm">🌿</span>
                             </div>
                             <div className="flex flex-col">
@@ -372,7 +372,7 @@ export default function Sidebar({
                     {/* Tree Legend */}
                     <div className="border-t border-gray-200 pt-4 mb-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl">🌳</span>
+                            <span className="text-2xl"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
                             <span className="text-sm text-gray-700">ต้นไม้ที่บันทึก</span>
                         </div>
                     </div>

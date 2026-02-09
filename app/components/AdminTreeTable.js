@@ -176,7 +176,7 @@ export default function AdminTreeTable({ trees, onRowClick }) {
                         {paginatedTrees.length === 0 ? (
                             <tr>
                                 <td colSpan="9" className="text-center py-12 text-gray-500">
-                                    <div className="text-5xl mb-3">🌳</div>
+                                    <div className="text-5xl mb-3"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>
                                     <p>ไม่พบข้อมูล</p>
                                 </td>
                             </tr>

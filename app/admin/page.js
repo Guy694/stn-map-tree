@@ -12,7 +12,7 @@ const MapComponent = dynamic(() => import('../components/MapComponent'), {
     loading: () => (
         <div className="w-full h-full flex items-center justify-center bg-green-50">
             <div className="text-center">
-                <div className="animate-spin text-5xl mb-4">🌳</div>
+                <div className="animate-spin text-5xl mb-4"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>
                 <p className="text-green-700 font-medium">กำลังโหลดแผนที่...</p>
             </div>
         </div>
@@ -92,7 +92,7 @@ export default function AdminPage() {
         return (
             <div className="w-full h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
                 <div className="text-center">
-                    <div className="animate-spin text-6xl mb-4">🌳</div>
+                    <div className="animate-spin text-6xl mb-4"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>
                     <p className="text-green-700 font-medium text-lg">กำลังโหลด...</p>
                 </div>
             </div>

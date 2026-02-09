@@ -60,7 +60,7 @@ export default function SplashScreen({ onComplete }) {
                 {/* Animated Tree Icon */}
                 <div className="mb-8 animate-fade-in-up" style={{ animationDelay: '0s' }}>
                     <div className="relative">
-                        <div className="text-8xl drop-shadow-2xl animate-bounce-slow">🌳</div>
+                        <div className="text-8xl drop-shadow-2xl animate-bounce-slow"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={100} height={100} /></div>
                         <div className="absolute -bottom-2 -right-2 text-4xl animate-pulse-slow">🌿</div>
                         <div className="absolute -top-2 -left-2 text-2xl animate-pulse" style={{ animationDelay: '0.5s' }}>🍃</div>
                     </div>

@@ -14,7 +14,7 @@ const MapComponent = dynamic(() => import('./components/MapComponent'), {
   loading: () => (
     <div className="w-full h-screen flex items-center justify-center bg-green-50">
       <div className="text-center">
-        <div className="animate-spin text-5xl mb-4">🌳</div>
+        <div className="animate-spin text-5xl mb-4"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>
         <p className="text-green-700 font-medium">กำลังโหลดแผนที่...</p>
       </div>
     </div>
@@ -253,7 +253,7 @@ export default function Home() {
             onClick={handleRecordClick}
             className="btn-primary flex items-center gap-2"
           >
-            <span className="text-xl">🌳</span>
+            <span className="text-xl"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
             <span>บันทึกต้นไม้</span>
           </button>
         )}

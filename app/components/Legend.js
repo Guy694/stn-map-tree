@@ -50,7 +50,7 @@ export default function Legend({ visibleLayers, onLayerToggle }) {
 
                 <div className="border-t border-gray-200 my-2 pt-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-2xl">🌳</span>
+                        <span className="text-2xl"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
                         <span className="text-sm text-gray-700">ต้นไม้ที่บันทึก</span>
                     </div>
                 </div>

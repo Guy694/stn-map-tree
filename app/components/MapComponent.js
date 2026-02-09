@@ -20,13 +20,14 @@ const getTreeColor = (treeName) => {
 
 // Function to create tree icon with specific color
 const createTreeIcon = (treeName) => {
-    const color = getTreeColor(treeName);
     return new L.DivIcon({
         className: 'tree-marker-icon',
-        html: `<div style="font-size: 32px; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3)); color: ${color};">🌳</div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40]
+        html: `<div style="display: flex; justify-content: center; align-items: center; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));">
+                <img src="/stn-tree/img/mahogani.png" alt="tree" style="width: 20px; height: 20px; object-fit: contain;" />
+               </div>`,
+        iconSize: [50, 50],
+        iconAnchor: [25, 50], // Center bottom
+        popupAnchor: [0, -50]
     });
 };
 
@@ -293,7 +294,7 @@ export default function MapComponent({
                 const markerIcon = isSelected
                     ? new L.DivIcon({
                         className: 'tree-marker-icon',
-                        html: `<div style="font-size: 48px; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.5)); color: ${getTreeColor(tree.tree_name)}; animation: pulse 1s ease-in-out infinite;">🌳</div>`,
+                        html: `<div style="font-size: 48px; filter: drop-shadow(3px 3px 4px rgba(0,0,0,0.5)); color: ${getTreeColor(tree.tree_name)}; animation: pulse 1s ease-in-out infinite;"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></div>`,
                         iconSize: [60, 60],
                         iconAnchor: [30, 60],
                         popupAnchor: [0, -60]
@@ -310,7 +311,7 @@ export default function MapComponent({
                             <div className="min-w-[200px]">
                                 {/* Header */}
                                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
-                                    <span className="text-2xl">🌳</span>
+                                    <span className="text-2xl"><img src="/stn-tree/img/mahogani.png" alt="logo_tree" width={40} height={40} /></span>
                                     <div>
                                         <h3 className="font-bold text-green-800 text-base">ต้น{tree.tree_name}</h3>
 
