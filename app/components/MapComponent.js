@@ -325,10 +325,10 @@ export default function MapComponent({
                                             {tree.images.map((imagePath, index) => (
                                                 <div key={index} className="relative">
                                                     <img
-                                                        src={`/stn-tree${imagePath}`}
+                                                        src={`/stn-tree/api${imagePath}`}
                                                         alt={`${tree.tree_name} - รูปที่ ${index + 1}`}
                                                         className="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-90 transition"
-                                                        onClick={() => window.open(`/stn-tree${imagePath}`, '_blank')}
+                                                        onClick={() => window.open(`/stn-tree/api${imagePath}`, '_blank')}
                                                     />
                                                 </div>
                                             ))}
