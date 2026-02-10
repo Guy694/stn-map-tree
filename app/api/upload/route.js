@@ -58,6 +58,7 @@ export async function POST(request) {
             const buffer = Buffer.from(bytes);
 
             // Save file
+            // In standalone mode, public folder is at the same level as the standalone folder
             const uploadDir = join(process.cwd(), 'public', 'uploads', 'trees');
 
             // Ensure directory exists
@@ -65,6 +66,8 @@ export async function POST(request) {
                 await mkdir(uploadDir, { recursive: true });
             } catch (error) {
                 console.error('Error creating directory:', error);
+                // If mkdir fails, throw error with details
+                throw new Error(`Cannot create upload directory: ${error.message}`);
             }
 
             const filepath = join(uploadDir, filename);
