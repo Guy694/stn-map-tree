@@ -217,7 +217,7 @@ services:
     networks:
       - stn-network
     volumes:
-      - ./stn-tree/uploads:/app/uploads
+      - ./stn-tree/uploads:/app/public/uploads
 
   # STN-EOC Application
   stn-eoc:

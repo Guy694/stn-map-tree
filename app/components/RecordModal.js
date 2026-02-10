@@ -36,6 +36,10 @@ export default function RecordModal({
     // Internal state for map position
     const [selectedPosition, setSelectedPosition] = useState(null);
 
+    // GPS detection state
+    const [gpsStatus, setGpsStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error' | 'manual'
+    const [gpsError, setGpsError] = useState(null);
+
     const [selectedImages, setSelectedImages] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
@@ -78,6 +82,55 @@ export default function RecordModal({
         };
         fetchDistricts();
     }, []);
+
+    // GPS detection when modal opens
+    useEffect(() => {
+        if (!isOpen) return;
+
+        // Reset GPS status when modal opens
+        setGpsStatus('loading');
+        setGpsError(null);
+
+        // Check if geolocation is available
+        if (!navigator.geolocation) {
+            setGpsStatus('error');
+            setGpsError('เบราว์เซอร์ของคุณไม่รองรับ GPS');
+            return;
+        }
+
+        // Get current position
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setSelectedPosition({ lat: latitude, lng: longitude });
+                setGpsStatus('success');
+            },
+            (error) => {
+                console.error('GPS error:', error);
+                let errorMessage = 'ไม่สามารถดึงตำแหน่ง GPS ได้';
+
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'คุณไม่อนุญาตให้เข้าถึงตำแหน่ง GPS';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'ไม่สามารถระบุตำแหน่งได้';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'หมดเวลาในการดึงตำแหน่ง GPS';
+                        break;
+                }
+
+                setGpsError(errorMessage);
+                setGpsStatus('error');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }, [isOpen]);
 
     // Fetch tambons when district changes
     useEffect(() => {
@@ -211,6 +264,17 @@ export default function RecordModal({
         }));
     };
 
+    // Handle manual position selection
+    const handleManualPosition = (position) => {
+        setSelectedPosition(position);
+        setGpsStatus('manual');
+    };
+
+    // Enable manual repositioning mode
+    const enableManualMode = () => {
+        setGpsStatus('manual');
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -243,14 +307,59 @@ export default function RecordModal({
 
                     {/* Location Selection Section - Embedded Map */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            📍 ตำแหน่งบนแผนที่ <span className="text-red-500">*</span>
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                                📍 ตำแหน่งบนแผนที่ <span className="text-red-500">*</span>
+                            </label>
+
+                            {/* GPS Status Badge */}
+                            <div className="flex items-center gap-2">
+                                {gpsStatus === 'loading' && (
+                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                        <span className="animate-spin">🔄</span>
+                                        กำลังดึง GPS...
+                                    </span>
+                                )}
+                                {gpsStatus === 'success' && (
+                                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                        ✅ ใช้ตำแหน่ง GPS
+                                    </span>
+                                )}
+                                {gpsStatus === 'manual' && (
+                                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                        📍 ปักหมุดด้วยตนเอง
+                                    </span>
+                                )}
+                                {gpsStatus === 'error' && (
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                        ⚠️ {gpsError}
+                                    </span>
+                                )}
+
+                                {/* Manual Repositioning Button */}
+                                {(gpsStatus === 'success' || gpsStatus === 'error') && (
+                                    <button
+                                        type="button"
+                                        onClick={enableManualMode}
+                                        className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition"
+                                    >
+                                        📍 ปักหมุดใหม่
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
                         <MiniMapPicker
                             selectedPosition={selectedPosition}
-                            onSelectPosition={setSelectedPosition}
+                            onSelectPosition={handleManualPosition}
                             height={350}
                         />
+
+                        {selectedPosition && (
+                            <p className="text-xs text-gray-500 mt-2">
+                                พิกัด: {selectedPosition.lat.toFixed(6)}, {selectedPosition.lng.toFixed(6)}
+                            </p>
+                        )}
                     </div>
 
                     {/* Form */}
