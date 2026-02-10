@@ -8,6 +8,12 @@ export async function GET(request, { params }) {
         const imagePath = pathArray.join('/');
         const filePath = join(process.cwd(), 'public', 'uploads', imagePath);
 
+        console.log('Attempting to serve file:', {
+            cwd: process.cwd(),
+            imagePath,
+            fullPath: filePath
+        });
+
         const file = await readFile(filePath);
 
         // ตรวจสอบ extension
@@ -26,7 +32,11 @@ export async function GET(request, { params }) {
             },
         });
     } catch (error) {
-        console.error('Error serving image:', error);
-        return new NextResponse('Image not found', { status: 404 });
+        console.error('Error serving image:', {
+            error: error.message,
+            stack: error.stack,
+            attemptedPath: error.path // specific to fs errors
+        });
+        return new NextResponse(`Image not found: ${error.message}`, { status: 404 });
     }
 }
