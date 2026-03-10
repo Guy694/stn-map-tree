@@ -61,7 +61,10 @@ export default function Sidebar({
     onDistrictChange,
     selectedTambon,
     onTambonChange,
-    onOpenGuide
+    onOpenGuide,
+    onOpenDashboard,
+    onOpenMyTrees,
+    currentUser
 }) {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -377,8 +380,29 @@ export default function Sidebar({
                         </div>
                     </div>
 
-                    {/* User Guide Button */}
-                    <div className="border-t border-gray-200 pt-4">
+                    {/* Action Buttons */}
+                    <div className="border-t border-gray-200 pt-4 space-y-2">
+                        {/* Dashboard Button - always visible */}
+                        <button
+                            onClick={onOpenDashboard}
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl font-medium hover:from-green-600 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                        >
+                            <span className="text-xl">📊</span>
+                            <span>Dashboard</span>
+                        </button>
+
+                        {/* My Trees Button - only for logged-in users */}
+                        {currentUser && (
+                            <button
+                                onClick={onOpenMyTrees}
+                                className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 text-white py-3 px-4 rounded-xl font-medium hover:from-teal-600 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                            >
+                                <span className="text-xl">🌳</span>
+                                <span>ต้นไม้ของฉัน</span>
+                            </button>
+                        )}
+
+                        {/* User Guide Button */}
                         <button
                             onClick={onOpenGuide}
                             className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-xl font-medium hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"

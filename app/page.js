@@ -7,6 +7,8 @@ import LoginModal from './components/LoginModal';
 import Sidebar from './components/Sidebar';
 import SplashScreen from './components/SplashScreen';
 import UserGuideModal from './components/UserGuideModal';
+import DashboardModal from './components/DashboardModal';
+import MyTreesModal from './components/MyTreesModal';
 
 // Dynamic import MapComponent to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('./components/MapComponent'), {
@@ -28,6 +30,8 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isMyTreesOpen, setIsMyTreesOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [visibleLayers, setVisibleLayers] = useState({
     districts: true,
@@ -111,7 +115,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(treeData),
-        credentials: 'include' // Important: Send cookies with request
+        credentials: 'include'
       });
 
       const data = await response.json();
@@ -121,7 +125,6 @@ export default function Home() {
         return;
       }
 
-      // Add new tree to list
       setTrees(prev => [data.tree, ...prev]);
       setSelectedLocation(null);
       alert('บันทึกข้อมูลสำเร็จ! 🎉');
@@ -129,6 +132,16 @@ export default function Home() {
       console.error('Error saving tree:', error);
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
     }
+  };
+
+  // Sync updated tree from MyTreesModal back to main trees list
+  const handleTreeUpdated = (updatedTree) => {
+    setTrees(prev => prev.map(t => t.id === updatedTree.id ? updatedTree : t));
+  };
+
+  // Sync deleted tree from MyTreesModal back to main trees list
+  const handleTreeDeleted = (treeId) => {
+    setTrees(prev => prev.filter(t => t.id !== treeId));
   };
 
   // Handle record button click
@@ -210,6 +223,9 @@ export default function Home() {
         selectedTambon={selectedTambon}
         onTambonChange={handleTambonChange}
         onOpenGuide={() => setIsGuideModalOpen(true)}
+        onOpenDashboard={() => setIsDashboardOpen(true)}
+        onOpenMyTrees={() => setIsMyTreesOpen(true)}
+        currentUser={currentUser}
       />
 
       {/* Map */}
@@ -278,6 +294,21 @@ export default function Home() {
       <UserGuideModal
         isOpen={isGuideModalOpen}
         onClose={() => setIsGuideModalOpen(false)}
+      />
+
+      {/* Dashboard Modal */}
+      <DashboardModal
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+      />
+
+      {/* My Trees Modal */}
+      <MyTreesModal
+        isOpen={isMyTreesOpen}
+        onClose={() => setIsMyTreesOpen(false)}
+        currentUser={currentUser}
+        onTreeUpdated={handleTreeUpdated}
+        onTreeDeleted={handleTreeDeleted}
       />
     </div>
   );
