@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { cookies } from 'next/headers';
-import { writeFile, mkdir, unlink } from 'fs/promises';
+import { mkdir } from 'fs/promises';
+import { createWriteStream, unlink } from 'fs';
 import { join } from 'path';
+import Busboy from 'busboy';
+import { Readable } from 'stream';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 120;
 
 async function getAuthUser() {
     const cookieStore = await cookies();
@@ -15,7 +21,7 @@ async function getAuthUser() {
     }
 }
 
-// POST - Upload and attach new image(s) to a tree
+// POST - Upload and attach new image(s) to a tree (streaming via busboy)
 export async function POST(request, { params }) {
     try {
         const user = await getAuthUser();
@@ -34,58 +40,112 @@ export async function POST(request, { params }) {
             return NextResponse.json({ error: 'ไม่มีสิทธิ์เพิ่มรูปภาพ' }, { status: 403 });
         }
 
-        const formData = await request.formData();
-        const files = formData.getAll('images');
-
-        if (!files || files.length === 0) {
-            return NextResponse.json({ error: 'ไม่พบไฟล์รูปภาพ' }, { status: 400 });
+        const contentType = request.headers.get('content-type') || '';
+        if (!contentType.includes('multipart/form-data')) {
+            return NextResponse.json({ error: 'กรุณาส่งเป็น multipart/form-data' }, { status: 400 });
         }
+
+        const uploadDir = join(process.cwd(), 'public', 'uploads', 'trees');
+        await mkdir(uploadDir, { recursive: true });
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        const maxSize = 10 * 1024 * 1024; // 10MB
+        const maxSizeBytes = 50 * 1024 * 1024; // 50MB per file
         const uploadedImages = [];
 
-        for (const file of files) {
-            if (!allowedTypes.includes(file.type)) {
-                return NextResponse.json(
-                    { error: `ไฟล์ ${file.name} ไม่ใช่รูปภาพที่รองรับ (jpg, png, webp เท่านั้น)` },
-                    { status: 400 }
-                );
-            }
-            if (file.size > maxSize) {
-                return NextResponse.json(
-                    { error: `ไฟล์ ${file.name} มีขนาดใหญ่เกิน 10MB` },
-                    { status: 400 }
-                );
-            }
+        await new Promise((resolve, reject) => {
+            const busboy = Busboy({
+                headers: { 'content-type': contentType },
+                limits: { fileSize: maxSizeBytes, files: 10 }
+            });
 
-            const timestamp = Date.now();
-            const randomString = Math.random().toString(36).substring(2, 15);
-            const extension = file.name.split('.').pop();
-            const filename = `${timestamp}_${randomString}.${extension}`;
+            const filePromises = [];
 
-            const bytes = await file.arrayBuffer();
-            const buffer = Buffer.from(bytes);
+            busboy.on('file', (fieldName, fileStream, info) => {
+                const { filename, mimeType } = info;
 
-            const uploadDir = join(process.cwd(), 'public', 'uploads', 'trees');
-            await mkdir(uploadDir, { recursive: true });
+                if (!allowedTypes.includes(mimeType)) {
+                    fileStream.resume();
+                    return reject(
+                        NextResponse.json(
+                            { error: `ไฟล์ ${filename} ไม่ใช่รูปภาพที่รองรับ (jpg, png, webp เท่านั้น)` },
+                            { status: 400 }
+                        )
+                    );
+                }
 
-            const filepath = join(uploadDir, filename);
-            await writeFile(filepath, buffer);
+                const timestamp = Date.now();
+                const randomStr = Math.random().toString(36).substring(2, 15);
+                const extension = filename.split('.').pop().toLowerCase() || 'jpg';
+                const outputFilename = `${timestamp}_${randomStr}.${extension}`;
+                const filepath = join(uploadDir, outputFilename);
 
-            const imagePath = `/uploads/trees/${filename}`;
+                let fileSizeExceeded = false;
+                const writeStream = createWriteStream(filepath);
 
-            // Insert into tree_images
-            const result = await query(
-                `INSERT INTO tree_images (tree_id, image_path) VALUES (?, ?)`,
-                [id, imagePath]
-            );
+                fileStream.on('limit', () => {
+                    fileSizeExceeded = true;
+                    fileStream.resume();
+                    writeStream.destroy();
+                    reject(
+                        NextResponse.json(
+                            { error: `ไฟล์ ${filename} มีขนาดใหญ่เกิน 50MB` },
+                            { status: 400 }
+                        )
+                    );
+                });
 
-            uploadedImages.push({ id: result.insertId, path: imagePath });
-        }
+                const p = new Promise((res, rej) => {
+                    writeStream.on('finish', async () => {
+                        if (!fileSizeExceeded) {
+                            const imagePath = `/uploads/trees/${outputFilename}`;
+                            try {
+                                const result = await query(
+                                    `INSERT INTO tree_images (tree_id, image_path) VALUES (?, ?)`,
+                                    [id, imagePath]
+                                );
+                                uploadedImages.push({ id: result.insertId, path: imagePath });
+                            } catch (dbErr) {
+                                rej(dbErr);
+                                return;
+                            }
+                        }
+                        res();
+                    });
+                    writeStream.on('error', rej);
+                    fileStream.on('error', rej);
+                });
+
+                filePromises.push(p);
+                fileStream.pipe(writeStream);
+            });
+
+            busboy.on('finish', async () => {
+                try {
+                    await Promise.all(filePromises);
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            });
+
+            busboy.on('error', reject);
+
+            const reader = request.body.getReader();
+            const nodeStream = new Readable({
+                async read() {
+                    const { done, value } = await reader.read();
+                    if (done) this.push(null);
+                    else this.push(Buffer.from(value));
+                }
+            });
+            nodeStream.pipe(busboy);
+        });
 
         return NextResponse.json({ success: true, images: uploadedImages });
     } catch (error) {
+        if (error instanceof Response || (error && error.status && error.headers)) {
+            return error;
+        }
         console.error('Error uploading tree image:', error);
         return NextResponse.json(
             { error: 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ', details: error.message },
@@ -110,7 +170,6 @@ export async function DELETE(request, { params }) {
             return NextResponse.json({ error: 'กรุณาระบุ imageId' }, { status: 400 });
         }
 
-        // Verify the image belongs to this tree and the user owns the tree
         const imageRow = await query(`
             SELECT ti.id, ti.image_path, t.user_id 
             FROM tree_images ti
@@ -128,13 +187,11 @@ export async function DELETE(request, { params }) {
         // Try to delete file from disk
         try {
             const filePath = join(process.cwd(), 'public', imageRow[0].image_path);
-            await unlink(filePath);
-        } catch (fileError) {
-            console.warn('Could not delete file from disk:', fileError.message);
-            // Continue even if file deletion fails (might not exist)
+            await new Promise((res) => unlink(filePath, () => res()));
+        } catch {
+            // Continue if file doesn't exist
         }
 
-        // Delete from DB
         await query(`DELETE FROM tree_images WHERE id = ?`, [imageId]);
 
         return NextResponse.json({ success: true });

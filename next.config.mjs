@@ -5,7 +5,12 @@ const nextConfig = {
   // allowedDevOrigins: ['192.168.100.95:3000', 'localhost:3000'],
   output: 'standalone',
   reactCompiler: true,
-  trailingSlash: true
+  trailingSlash: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb'
+    }
+  }
 };
 
 export default nextConfig;

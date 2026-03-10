@@ -166,7 +166,7 @@ export default function RecordModal({
 
         setSelectedImages(files);
 
-        // Create preview URLs
+        // Create preview URLs from originals (for display quality)
         const previews = files.map(file => URL.createObjectURL(file));
         setImagePreviews(previews);
     };
@@ -210,7 +210,7 @@ export default function RecordModal({
                 const uploadRes = await fetch('/stn-tree/api/upload/', {
                     method: 'POST',
                     body: uploadFormData,
-                    credentials: 'include' // Important: Send cookies with request
+                    credentials: 'include'
                 });
 
                 if (!uploadRes.ok) {
