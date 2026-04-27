@@ -67,20 +67,18 @@ export default function SplashScreen({ onComplete }) {
                 </div>
 
                 {/* Logos */}
-                <div className="flex items-center justify-center gap-8 md:gap-12 mb-8">
-                    <img
-                        src="/stn-tree/img/satun.png"
-                        alt="กระทรวงสาธารณสุข"
-                        className="h-50 md:h-50 w-auto drop-shadow-2xl animate-fade-in-up hover:scale-105 transition-transform duration-300"
-                        style={{ animationDelay: '0.3s' }}
-                    />
 
-                </div>
                 <div className="flex items-center justify-center gap-8 md:gap-12 mb-8">
                     <img
                         src="/stn-tree/img/Logo_moph.png"
                         alt="กระทรวงสาธารณสุข"
                         className="h-24 md:h-32 w-auto drop-shadow-2xl animate-fade-in-up hover:scale-105 transition-transform duration-300"
+                        style={{ animationDelay: '0.3s' }}
+                    />
+                    <img
+                        src="/stn-tree/img/satun.png"
+                        alt="กระทรวงสาธารณสุข"
+                        className="h-50 md:h-50 w-auto drop-shadow-2xl animate-fade-in-up hover:scale-105 transition-transform duration-300"
                         style={{ animationDelay: '0.3s' }}
                     />
                     <img
