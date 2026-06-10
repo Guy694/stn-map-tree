@@ -9,6 +9,7 @@ import { Readable } from 'stream';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
+export const runtime = 'nodejs';
 
 async function getAuthUser() {
     const cookieStore = await cookies();
@@ -48,7 +49,7 @@ export async function POST(request, { params }) {
         const uploadDir = join(process.cwd(), 'public', 'uploads', 'trees');
         await mkdir(uploadDir, { recursive: true });
 
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         const maxSizeBytes = 50 * 1024 * 1024; // 50MB per file
         const uploadedImages = [];
 

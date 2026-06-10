@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { compressImages } from '../utils/imageCompressor';
 
 // Dynamic import for MiniMapPicker to avoid SSR issues
 const MiniMapPicker = dynamic(() => import('./MiniMapPicker'), {
@@ -164,6 +165,13 @@ export default function RecordModal({
             return;
         }
 
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        const invalidTypeFile = files.find(file => !allowedTypes.includes(file.type));
+        if (invalidTypeFile) {
+            alert(`ไฟล์ ${invalidTypeFile.name} ไม่รองรับ กรุณาใช้ JPG, PNG หรือ WEBP`);
+            return;
+        }
+
         setSelectedImages(files);
 
         // Create preview URLs from originals (for display quality)
@@ -202,8 +210,21 @@ export default function RecordModal({
 
             // Upload images if any
             if (selectedImages.length > 0) {
+                const compressedImages = await compressImages(selectedImages, {
+                    maxWidth: 1920,
+                    maxHeight: 1920,
+                    quality: 0.82,
+                    maxSizeBytes: 2.5 * 1024 * 1024
+                });
+
+                const totalUploadBytes = compressedImages.reduce((sum, file) => sum + file.size, 0);
+                const maxTotalBytes = 10 * 1024 * 1024;
+                if (totalUploadBytes > maxTotalBytes) {
+                    throw new Error('ขนาดรูปภาพรวมเกิน 10MB กรุณาลดจำนวนรูปหรือขนาดรูปภาพ');
+                }
+
                 const uploadFormData = new FormData();
-                selectedImages.forEach(file => {
+                compressedImages.forEach(file => {
                     uploadFormData.append('images', file);
                 });
 
@@ -214,8 +235,18 @@ export default function RecordModal({
                 });
 
                 if (!uploadRes.ok) {
-                    const error = await uploadRes.json();
-                    throw new Error(error.error || 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ');
+                    let errorMessage = 'เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ';
+                    try {
+                        const error = await uploadRes.json();
+                        errorMessage = error.error || errorMessage;
+                    } catch {
+                        if (uploadRes.status === 413) {
+                            errorMessage = 'ไฟล์รูปภาพใหญ่เกินกว่าที่เซิร์ฟเวอร์รับได้ (HTTP 413)';
+                        } else {
+                            errorMessage = `อัปโหลดไม่สำเร็จ (HTTP ${uploadRes.status})`;
+                        }
+                    }
+                    throw new Error(errorMessage);
                 }
 
                 const uploadData = await uploadRes.json();
@@ -527,7 +558,7 @@ export default function RecordModal({
                                 disabled={isUploading}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
-                            <p className="text-xs text-gray-500 mt-1">รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 10MB ต่อรูป</p>
+                            <p className="text-xs text-gray-500 mt-1">รองรับ JPG, PNG, WEBP และจำกัดขนาดรวมไม่เกิน 10MB</p>
 
                             {/* Image Previews */}
                             {imagePreviews.length > 0 && (
